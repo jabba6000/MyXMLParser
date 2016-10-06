@@ -7,7 +7,6 @@
 //
 
 #import "ViewController.h"
-#import "MyCustomCell.h"
 
 @interface ViewController ()
 
@@ -27,11 +26,6 @@
 //
 @property (nonatomic, strong) NSMutableArray *arrayWithImages;
 
-
-//Extra properties for Cell
-@property (nonatomic, strong) NSURLSessionConfiguration *sessionConfig;
-@property (nonatomic, strong) NSURLSession *session;
-
 @end
 
 @implementation ViewController
@@ -43,9 +37,6 @@
         NSInteger nsi = (NSInteger) x;
         [_arrayWithImages insertObject:@"1" atIndex:nsi];
     }
-    //For a Cell
-    _sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
-    _session = [NSURLSession sessionWithConfiguration:_sessionConfig];
     
     _myTableView.delegate = self;
     _myTableView.dataSource = self;
@@ -150,20 +141,22 @@
 }
 
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    
     NSLog(@"%@", [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"]);
 
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"];
+    UITableViewCell *cell;
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"Cell"];
         cell.accessoryType = UITableViewCellAccessoryNone;
 //        cell.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     cell.tag = indexPath.row;
-
+    NSLog(@"%ld", (long)indexPath.row);
+    UIImage *naImage = [UIImage imageNamed:@"na.jpg"];
     if ([self.arrNeighboursData objectAtIndex:indexPath.row])
     {
         if(  [[_arrayWithImages objectAtIndex:indexPath.row]  isEqual: @"1"]){
-        cell.imageView.image = nil;
+        cell.imageView.image = naImage;
         dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0ul);
         dispatch_async(queue, ^(void) {
             
@@ -171,96 +164,34 @@
             
                                  UIImage* image = [[UIImage alloc] initWithData:imageData];
                                  if (image) {
-                                     [_arrayWithImages insertObject:image atIndex:indexPath.row];
                                      dispatch_async(dispatch_get_main_queue(), ^{
                                          if (cell.tag == indexPath.row) {
+                                             [_arrayWithImages removeObjectAtIndex:indexPath.row];
+                                             [_arrayWithImages insertObject:image atIndex:cell.tag];
+                                             NSLog(@"Img downloaded");
                                              cell.imageView.image = image;
                                              [cell setNeedsLayout];
+                                             //Это обновляет ячейки, которые уже получили данные
+                                             [self.myTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
                                          }
                                      });
                                  }
                                  });
-                                 
-                                 cell.textLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"];
-                                cell.detailTextLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"weight"];
-
-        }
-        else if (![[_arrayWithImages objectAtIndex:indexPath.row ]  isEqual:@"1"] ){
-            cell.imageView.image = [_arrayWithImages objectAtIndex:indexPath.row];
+            
             cell.textLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"];
             cell.detailTextLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"weight"];
-            [cell setNeedsLayout];
+            
+        }
+        else if (![[_arrayWithImages objectAtIndex:indexPath.row ]  isEqual:@"1"] ){
+
+                cell.imageView.image = [_arrayWithImages objectAtIndex:cell.tag];
+                cell.textLabel.text = [[self.arrNeighboursData objectAtIndex:cell.tag] objectForKey:@"name"];
+                cell.detailTextLabel.text = [[self.arrNeighboursData objectAtIndex:cell.tag] objectForKey:@"weight"];
+                [cell setNeedsLayout];
         }
     }
     return cell;
     
 }
-//    MyCustomCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"];
-//        if (cell == nil) {
-//            cell = [[MyCustomCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"];
-//            cell.accessoryType = UITableViewCellAccessoryNone;
-//    //        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-//        }
-//    
-//    if (![[self.arrNeighboursData objectAtIndex:indexPath.row] valueForKey:@"readyImage"])
-//    {
-//        NSString *urlString = [[self.arrNeighboursData objectAtIndex:indexPath.row] valueForKey:@"picture"];
-//        NSURL *imageURL = [NSURL URLWithString:urlString];
-//        
-//        if (imageURL)
-//        {
-//            NSLog(@"Url was created");
-//            cell.imageDownloadTask = [_session dataTaskWithURL:imageURL
-//                                             completionHandler:^(NSData *data, NSURLResponse *response, NSError *error)
-//                                      {
-//                                          if (error)
-//                                          {
-//                                              NSLog(@"ERROR: %@", error);
-//                                          }
-//                                          else
-//                                          {
-//                                              NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-//                                              NSLog(@"httpResponse was created");
-//                                              if (httpResponse.statusCode == 200)
-//                                              {
-//                                                  UIImage *image = [UIImage imageWithData:data];
-//                                                  
-//                                                  dispatch_async(dispatch_get_main_queue(), ^{
-//                                                      if([[self.arrNeighboursData objectAtIndex:indexPath.row] isKindOfClass:[NSMutableDictionary class]]) {
-//                                                          [[self.arrNeighboursData objectAtIndex:indexPath.row] setObject:data forKey:@"readyImage"];}
-//                                                      cell.imageView.image = image;
-//                                                      if ([[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"readyImage"]) {
-//                                                          cell.imageView.image = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"readyImage"];
-//                                                      }
-//                                                      else{
-//                                                          NSLog(@"shit");
-//                                                      }
-//                                                      [cell setNeedsLayout];
-//                                                      [cell setNeedsDisplay];
-//                                              
-//                                                  });
-//                                              }
-//                                              else
-//                                              {
-//                                                  NSLog(@"Couldn't load image at URL: %@", imageURL);
-//                                                  NSLog(@"HTTP %d", httpResponse.statusCode);
-//                                              }
-//                                          }
-//                                      }];
-//            
-//            [cell.imageDownloadTask resume];
-//        }
-//    }
-//    else
-//    {
-//        [cell.imageView setImage:[UIImage imageWithData:[[self.arrNeighboursData objectAtIndex:indexPath.row] valueForKey:@"readyImage"]]];
-//    }
-//    
-//    cell.textLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"];
-//    cell.detailTextLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"weight"];
-//
-//    return cell;
-//}
-
 
 @end
