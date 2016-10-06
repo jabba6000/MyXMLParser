@@ -95,20 +95,32 @@
         // If the closing element equals to "geoname" then the all the data of a neighbour country has been parsed and the dictionary should be added to the neighbours data array.
         [self.arrNeighboursData addObject:[[NSDictionary alloc] initWithDictionary:self.dictTempDataStorage]];
     }
-    else if ([elementName isEqualToString:@"picture"]){
+    if ([elementName isEqualToString:@"picture"]){
         //        NSURL *pictureURL = [NSURL URLWithString: self.foundValue];
         //        [self.dictTempDataStorage setObject:pictureURL forKey:@"pictureURL"];
         [self.dictTempDataStorage setObject:[NSString stringWithString:self.foundValue] forKey:@"picture"];
     }
-    else if ([elementName isEqualToString:@"name"]){
+    if ([elementName isEqualToString:@"price"]){
+        // If the toponym name element was found then store it.
+        NSString *weight = [self.foundValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        [self.dictTempDataStorage setObject:[NSString stringWithString:weight] forKey:@"price"];
+    }
+    
+    if ([elementName isEqualToString:@"name"]){
         // If the country name element was found then store it.
         [self.dictTempDataStorage setObject:[NSString stringWithString:self.foundValue] forKey:@"name"];
     }
-    else if ([elementName isEqualToString:@"categoryId"]){
+    if ([elementName isEqualToString:@"categoryId"]){
         // If the toponym name element was found then store it.
         [self.dictTempDataStorage setObject:[NSString stringWithString:self.foundValue] forKey:@"categoryId"];
     }
-    else if ([elementName isEqualToString:@"param"]){
+//    if ([elementName isEqualToString:@"description"]){
+//        // If the toponym name element was found then store it.
+//        NSString *weight = [self.foundValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+//        [self.dictTempDataStorage setObject:[NSString stringWithString:weight] forKey:@"description"];
+//        NSLog(@"%@", [self.dictTempDataStorage objectForKey:@"description"]);
+//    }
+    if ([elementName isEqualToString:@"param"]){
         // If the toponym name element was found then store it.
         if([self.foundValue containsString:@"гр"]){
             NSString *weight = [self.foundValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
@@ -125,9 +137,12 @@
 -(void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string{
     // Store the found characters if only we're interested in the current element.
     if ([self.currentElement isEqualToString:@"name"] ||
+        [self.currentElement isEqualToString:@"price"] ||
         [self.currentElement isEqualToString:@"categoryId"] ||
         [self.currentElement containsString:@"param"] ||
-        [self.currentElement isEqualToString:@"picture"]) {
+        [self.currentElement isEqualToString:@"picture"]
+//        [self.currentElement isEqualToString:@"description"]
+        ) {
         if (![string isEqualToString:@"\n"]) {
             [self.foundValue appendString:string];
         }
@@ -172,6 +187,7 @@
                                              cell.imageView.image = image;
                                              [cell setNeedsLayout];
                                              //Это обновляет ячейки, которые уже получили данные
+                                             //Чтобы они начали отображать картинку
                                              [self.myTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
                                          }
                                      });
@@ -179,15 +195,14 @@
                                  });
             
             cell.textLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"];
-            cell.detailTextLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"weight"];
+            cell.detailTextLabel.text = [NSString stringWithFormat:@"Вес: %@, Цена: %@",[[self.arrNeighboursData objectAtIndex:cell.tag] objectForKey:@"weight"], [[self.arrNeighboursData objectAtIndex:cell.tag] objectForKey:@"price"] ];
             
         }
         else if (![[_arrayWithImages objectAtIndex:indexPath.row ]  isEqual:@"1"] ){
 
                 cell.imageView.image = [_arrayWithImages objectAtIndex:cell.tag];
                 cell.textLabel.text = [[self.arrNeighboursData objectAtIndex:cell.tag] objectForKey:@"name"];
-                cell.detailTextLabel.text = [[self.arrNeighboursData objectAtIndex:cell.tag] objectForKey:@"weight"];
-                [cell setNeedsLayout];
+            cell.detailTextLabel.text = [NSString stringWithFormat:@"Вес: %@, Цена: %@",[[self.arrNeighboursData objectAtIndex:cell.tag] objectForKey:@"weight"], [[self.arrNeighboursData objectAtIndex:cell.tag] objectForKey:@"price"] ];
         }
     }
     return cell;
