@@ -69,6 +69,11 @@
         self.dictTempDataStorage = [[NSMutableDictionary alloc] init];
     }
     
+    if ([elementName containsString:@"param"]){
+        if ([[attributeDict objectForKey:@"name"] isEqualToString: @"Вес"])
+            self.currentElement = elementName;
+    }
+    
     // Keep the current element.
     self.currentElement = elementName;
 }
@@ -82,12 +87,19 @@
     else if ([elementName isEqualToString:@"name"]){
         // If the country name element was found then store it.
         [self.dictTempDataStorage setObject:[NSString stringWithString:self.foundValue] forKey:@"name"];
-        NSLog(@"%@", self.foundValue);
     }
     else if ([elementName isEqualToString:@"categoryId"]){
         // If the toponym name element was found then store it.
         [self.dictTempDataStorage setObject:[NSString stringWithString:self.foundValue] forKey:@"categoryId"];
-        NSLog(@"%@", self.foundValue);
+    }
+    else if ([elementName isEqualToString:@"param"]){
+        // If the toponym name element was found then store it.
+        if([self.foundValue containsString:@"гр"]){
+            NSString *weight = [self.foundValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+
+            [self.dictTempDataStorage setObject:[NSString stringWithString:weight] forKey:@"weight"];
+            NSLog(@"%@", weight);
+        }
     }
     
     // Clear the mutable string.
@@ -97,7 +109,8 @@
 -(void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string{
     // Store the found characters if only we're interested in the current element.
     if ([self.currentElement isEqualToString:@"name"] ||
-        [self.currentElement isEqualToString:@"categoryId"]) {
+        [self.currentElement isEqualToString:@"categoryId"] ||
+        [self.currentElement containsString:@"param"]) {
         
         if (![string isEqualToString:@"\n"]) {
             [self.foundValue appendString:string];
@@ -122,7 +135,7 @@
     NSLog(@"%@", [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"]);
     
     cell.textLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"];
-    cell.detailTextLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"categoryId"];
+    cell.detailTextLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"weight"];
     
     return cell;
 }
