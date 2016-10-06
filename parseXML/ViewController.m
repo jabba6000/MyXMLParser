@@ -7,6 +7,7 @@
 //
 
 #import "ViewController.h"
+#import "MyCustomCell.h"
 
 @interface ViewController ()
 
@@ -23,11 +24,29 @@
 // The currentElement string will be assigned with the name of the element that is parsed at any moment.
 @property (nonatomic, strong) NSString *currentElement;
 
+//
+@property (nonatomic, strong) NSMutableArray *arrayWithImages;
+
+
+//Extra properties for Cell
+@property (nonatomic, strong) NSURLSessionConfiguration *sessionConfig;
+@property (nonatomic, strong) NSURLSession *session;
+
 @end
 
 @implementation ViewController
 
 - (void)viewDidLoad {
+    
+    _arrayWithImages = [NSMutableArray new];
+    for (int x = 0; x!=260; x++){
+        NSInteger nsi = (NSInteger) x;
+        [_arrayWithImages insertObject:@"1" atIndex:nsi];
+    }
+    //For a Cell
+    _sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
+    _session = [NSURLSession sessionWithConfiguration:_sessionConfig];
+    
     _myTableView.delegate = self;
     _myTableView.dataSource = self;
     [super viewDidLoad];
@@ -55,10 +74,7 @@
 
 -(void)parserDidEndDocument:(NSXMLParser *)parser{
     // When the parsing has been finished then simply reload the table view.
-    NSLog(@"COUNT IS %lu", (unsigned long)[self.arrNeighboursData count]);
-    NSDictionary *dict = [NSDictionary dictionaryWithDictionary:[self.arrNeighboursData objectAtIndex:67]];
-    NSLog(@"%@", (NSString *)[dict objectForKey:@"picture"]);
-   
+    NSLog(@"COUNT IS %lu", (unsigned long)[self.arrNeighboursData count]);   
     [self.myTableView reloadData];
 }
 
@@ -134,16 +150,8 @@
 }
 
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
-//    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"];
-//    if (cell == nil) {
-//        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"Cell"];
-//        cell.accessoryType = UITableViewCellAccessoryNone;
-//        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-//    }
-    
     NSLog(@"%@", [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"]);
 
-    
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"];
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"Cell"];
@@ -151,10 +159,10 @@
 //        cell.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     cell.tag = indexPath.row;
-//    NSDictionary *parsedData = [self.arrNeighboursData objectAtIndex:indexPath.row];
 
     if ([self.arrNeighboursData objectAtIndex:indexPath.row])
     {
+        if(  [[_arrayWithImages objectAtIndex:indexPath.row]  isEqual: @"1"]){
         cell.imageView.image = nil;
         dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0ul);
         dispatch_async(queue, ^(void) {
@@ -163,6 +171,7 @@
             
                                  UIImage* image = [[UIImage alloc] initWithData:imageData];
                                  if (image) {
+                                     [_arrayWithImages insertObject:image atIndex:indexPath.row];
                                      dispatch_async(dispatch_get_main_queue(), ^{
                                          if (cell.tag == indexPath.row) {
                                              cell.imageView.image = image;
@@ -173,8 +182,85 @@
                                  });
                                  
                                  cell.textLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"];
-                                 }
+                                cell.detailTextLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"weight"];
+
+        }
+        else if (![[_arrayWithImages objectAtIndex:indexPath.row ]  isEqual:@"1"] ){
+            cell.imageView.image = [_arrayWithImages objectAtIndex:indexPath.row];
+            cell.textLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"];
+            cell.detailTextLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"weight"];
+            [cell setNeedsLayout];
+        }
+    }
     return cell;
+    
 }
+//    MyCustomCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"];
+//        if (cell == nil) {
+//            cell = [[MyCustomCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"];
+//            cell.accessoryType = UITableViewCellAccessoryNone;
+//    //        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+//        }
+//    
+//    if (![[self.arrNeighboursData objectAtIndex:indexPath.row] valueForKey:@"readyImage"])
+//    {
+//        NSString *urlString = [[self.arrNeighboursData objectAtIndex:indexPath.row] valueForKey:@"picture"];
+//        NSURL *imageURL = [NSURL URLWithString:urlString];
+//        
+//        if (imageURL)
+//        {
+//            NSLog(@"Url was created");
+//            cell.imageDownloadTask = [_session dataTaskWithURL:imageURL
+//                                             completionHandler:^(NSData *data, NSURLResponse *response, NSError *error)
+//                                      {
+//                                          if (error)
+//                                          {
+//                                              NSLog(@"ERROR: %@", error);
+//                                          }
+//                                          else
+//                                          {
+//                                              NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+//                                              NSLog(@"httpResponse was created");
+//                                              if (httpResponse.statusCode == 200)
+//                                              {
+//                                                  UIImage *image = [UIImage imageWithData:data];
+//                                                  
+//                                                  dispatch_async(dispatch_get_main_queue(), ^{
+//                                                      if([[self.arrNeighboursData objectAtIndex:indexPath.row] isKindOfClass:[NSMutableDictionary class]]) {
+//                                                          [[self.arrNeighboursData objectAtIndex:indexPath.row] setObject:data forKey:@"readyImage"];}
+//                                                      cell.imageView.image = image;
+//                                                      if ([[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"readyImage"]) {
+//                                                          cell.imageView.image = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"readyImage"];
+//                                                      }
+//                                                      else{
+//                                                          NSLog(@"shit");
+//                                                      }
+//                                                      [cell setNeedsLayout];
+//                                                      [cell setNeedsDisplay];
+//                                              
+//                                                  });
+//                                              }
+//                                              else
+//                                              {
+//                                                  NSLog(@"Couldn't load image at URL: %@", imageURL);
+//                                                  NSLog(@"HTTP %d", httpResponse.statusCode);
+//                                              }
+//                                          }
+//                                      }];
+//            
+//            [cell.imageDownloadTask resume];
+//        }
+//    }
+//    else
+//    {
+//        [cell.imageView setImage:[UIImage imageWithData:[[self.arrNeighboursData objectAtIndex:indexPath.row] valueForKey:@"readyImage"]]];
+//    }
+//    
+//    cell.textLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"];
+//    cell.detailTextLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"weight"];
+//
+//    return cell;
+//}
+
 
 @end
