@@ -55,6 +55,10 @@
 
 -(void)parserDidEndDocument:(NSXMLParser *)parser{
     // When the parsing has been finished then simply reload the table view.
+    NSLog(@"COUNT IS %lu", (unsigned long)[self.arrNeighboursData count]);
+    NSDictionary *dict = [NSDictionary dictionaryWithDictionary:[self.arrNeighboursData objectAtIndex:67]];
+    NSLog(@"%@", (NSString *)[dict objectForKey:@"picture"]);
+   
     [self.myTableView reloadData];
 }
 
@@ -84,6 +88,11 @@
         // If the closing element equals to "geoname" then the all the data of a neighbour country has been parsed and the dictionary should be added to the neighbours data array.
         [self.arrNeighboursData addObject:[[NSDictionary alloc] initWithDictionary:self.dictTempDataStorage]];
     }
+    else if ([elementName isEqualToString:@"picture"]){
+        //        NSURL *pictureURL = [NSURL URLWithString: self.foundValue];
+        //        [self.dictTempDataStorage setObject:pictureURL forKey:@"pictureURL"];
+        [self.dictTempDataStorage setObject:[NSString stringWithString:self.foundValue] forKey:@"picture"];
+    }
     else if ([elementName isEqualToString:@"name"]){
         // If the country name element was found then store it.
         [self.dictTempDataStorage setObject:[NSString stringWithString:self.foundValue] forKey:@"name"];
@@ -101,10 +110,7 @@
             NSLog(@"%@", weight);
         }
     }
-    else if ([elementName isEqualToString:@"picture"]){
-        NSURL *pictureURL = [NSURL URLWithString: self.foundValue];
-        [self.dictTempDataStorage setObject:pictureURL forKey:@"pictureURL"];
-    }
+   
     // Clear the mutable string.
     [self.foundValue setString:@""];
 }
@@ -128,19 +134,46 @@
 }
 
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+//    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"];
+//    if (cell == nil) {
+//        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"Cell"];
+//        cell.accessoryType = UITableViewCellAccessoryNone;
+//        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+//    }
+    
+    NSLog(@"%@", [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"]);
+
+    
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"];
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"Cell"];
         cell.accessoryType = UITableViewCellAccessoryNone;
-        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+//        cell.selectionStyle = UITableViewCellSelectionStyleNone;
     }
-    
-    NSLog(@"%@", [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"]);
-    
-    cell.textLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"];
-    cell.imageView.image = [[UIImage alloc] initWithData:[NSData dataWithContentsOfURL:[[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"pictureURL"]]];
-    cell.detailTextLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"weight"];
-    
+    cell.tag = indexPath.row;
+//    NSDictionary *parsedData = [self.arrNeighboursData objectAtIndex:indexPath.row];
+
+    if ([self.arrNeighboursData objectAtIndex:indexPath.row])
+    {
+        cell.imageView.image = nil;
+        dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0ul);
+        dispatch_async(queue, ^(void) {
+            
+            NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:[[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"picture"]]];
+            
+                                 UIImage* image = [[UIImage alloc] initWithData:imageData];
+                                 if (image) {
+                                     dispatch_async(dispatch_get_main_queue(), ^{
+                                         if (cell.tag == indexPath.row) {
+                                             cell.imageView.image = image;
+                                             [cell setNeedsLayout];
+                                         }
+                                     });
+                                 }
+                                 });
+                                 
+                                 cell.textLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"];
+                                 }
     return cell;
 }
 
