@@ -101,7 +101,10 @@
             NSLog(@"%@", weight);
         }
     }
-    
+    else if ([elementName isEqualToString:@"picture"]){
+        NSURL *pictureURL = [NSURL URLWithString: self.foundValue];
+        [self.dictTempDataStorage setObject:pictureURL forKey:@"pictureURL"];
+    }
     // Clear the mutable string.
     [self.foundValue setString:@""];
 }
@@ -110,8 +113,8 @@
     // Store the found characters if only we're interested in the current element.
     if ([self.currentElement isEqualToString:@"name"] ||
         [self.currentElement isEqualToString:@"categoryId"] ||
-        [self.currentElement containsString:@"param"]) {
-        
+        [self.currentElement containsString:@"param"] ||
+        [self.currentElement isEqualToString:@"picture"]) {
         if (![string isEqualToString:@"\n"]) {
             [self.foundValue appendString:string];
         }
@@ -135,6 +138,7 @@
     NSLog(@"%@", [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"]);
     
     cell.textLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"name"];
+    cell.imageView.image = [[UIImage alloc] initWithData:[NSData dataWithContentsOfURL:[[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"pictureURL"]]];
     cell.detailTextLabel.text = [[self.arrNeighboursData objectAtIndex:indexPath.row] objectForKey:@"weight"];
     
     return cell;
