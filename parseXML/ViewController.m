@@ -96,9 +96,8 @@
         [self.arrNeighboursData addObject:[[NSDictionary alloc] initWithDictionary:self.dictTempDataStorage]];
     }
     if ([elementName isEqualToString:@"picture"]){
-        //        NSURL *pictureURL = [NSURL URLWithString: self.foundValue];
-        //        [self.dictTempDataStorage setObject:pictureURL forKey:@"pictureURL"];
-        [self.dictTempDataStorage setObject:[NSString stringWithString:self.foundValue] forKey:@"picture"];
+        NSString *picture = [self.foundValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        [self.dictTempDataStorage setObject:[NSString stringWithString:picture] forKey:@"picture"];        NSLog(@"%@", [self.dictTempDataStorage objectForKey:@"picture"]);
     }
     if ([elementName isEqualToString:@"price"]){
         // If the toponym name element was found then store it.
@@ -114,12 +113,12 @@
         // If the toponym name element was found then store it.
         [self.dictTempDataStorage setObject:[NSString stringWithString:self.foundValue] forKey:@"categoryId"];
     }
-//    if ([elementName isEqualToString:@"description"]){
-//        // If the toponym name element was found then store it.
-//        NSString *weight = [self.foundValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-//        [self.dictTempDataStorage setObject:[NSString stringWithString:weight] forKey:@"description"];
-//        NSLog(@"%@", [self.dictTempDataStorage objectForKey:@"description"]);
-//    }
+    if ([elementName isEqualToString:@"description"]){
+        // If the toponym name element was found then store it.
+        NSString *weight = [self.foundValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        [self.dictTempDataStorage setObject:[NSString stringWithString:weight] forKey:@"description"];
+        NSLog(@"%@", [self.dictTempDataStorage objectForKey:@"description"]);
+    }
     if ([elementName isEqualToString:@"param"]){
         // If the toponym name element was found then store it.
         if([self.foundValue containsString:@"гр"]){
@@ -140,8 +139,8 @@
         [self.currentElement isEqualToString:@"price"] ||
         [self.currentElement isEqualToString:@"categoryId"] ||
         [self.currentElement containsString:@"param"] ||
-        [self.currentElement isEqualToString:@"picture"]
-//        [self.currentElement isEqualToString:@"description"]
+        [self.currentElement isEqualToString:@"picture"] ||
+        [self.currentElement isEqualToString:@"description"]
         ) {
         if (![string isEqualToString:@"\n"]) {
             [self.foundValue appendString:string];
