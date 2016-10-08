@@ -22,15 +22,18 @@
 @property (nonatomic, strong) NSMutableString *foundValue;
 // The currentElement string will be assigned with the name of the element that is parsed at any moment.
 @property (nonatomic, strong) NSString *currentElement;
-
-//
+//arrayForReadyImages
 @property (nonatomic, strong) NSMutableArray *arrayWithImages;
+//arrayForCategoriesNames
+@property (nonatomic, strong) NSMutableArray *categoriesNamesArray;
 
 @end
 
 @implementation ViewController
 
 - (void)viewDidLoad {
+    
+    _categoriesNamesArray = [NSMutableArray new];
     
     _arrayWithImages = [NSMutableArray new];
     for (int x = 0; x!=260; x++){
@@ -65,7 +68,9 @@
 
 -(void)parserDidEndDocument:(NSXMLParser *)parser{
     // When the parsing has been finished then simply reload the table view.
-    NSLog(@"COUNT IS %lu", (unsigned long)[self.arrNeighboursData count]);   
+    NSLog(@"COUNT IS %lu", (unsigned long)[self.arrNeighboursData count]);
+    for(NSString *str in _categoriesNamesArray)
+        NSLog(@"%@", str);
     [self.myTableView reloadData];
 }
 
@@ -82,6 +87,10 @@
     
     if ([elementName containsString:@"param"]){
         if ([[attributeDict objectForKey:@"name"] isEqualToString: @"Вес"])
+            self.currentElement = elementName;
+    }
+    if ([elementName containsString:@"category"]){
+        if ([attributeDict objectForKey:@"id"])
             self.currentElement = elementName;
     }
     
@@ -128,7 +137,12 @@
             NSLog(@"%@", weight);
         }
     }
-   
+    if ([elementName isEqualToString:@"category"]){
+        // If the toponym name element was found then store it.
+            NSString *categoryName = [self.foundValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+            [self.categoriesNamesArray addObject:categoryName];
+    }
+    
     // Clear the mutable string.
     [self.foundValue setString:@""];
 }
@@ -139,6 +153,7 @@
         [self.currentElement isEqualToString:@"price"] ||
         [self.currentElement isEqualToString:@"categoryId"] ||
         [self.currentElement containsString:@"param"] ||
+        [self.currentElement containsString:@"category"] ||
         [self.currentElement isEqualToString:@"picture"] ||
         [self.currentElement isEqualToString:@"description"]
         ) {
